@@ -98,6 +98,8 @@ const STARTUPS=[
  ["Agent Hita","Digital safety tool to spot and prevent online manipulation and scams.","agenthita.org","agent_hita.jpg"],
  ["eosware","An AI teammate for beauty business owners, built by a salon owner.","eosware.ai","eosware.jpg"]
 ];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Kept below const esc= so ops/run_of_show/build_fri_screen.py (rewrites DAY..esc) leaves it alone
 // "Who's in the room" cards. Figures from AI Days registration data, Oct 25-30 (live pull 2026-10-30), plus the
 // Claude hackathon count Aniket supplied. Bases: intelligence/measurements.md 2026-10-30. Cards with a null tile are skipped.
 // Enriched shares: audience_20261030/audience_deep.py, base 1,403 Mon-Fri registrants with a public profile (founders: 436 with a current founder title)
@@ -110,7 +112,6 @@ const STATS=[
 ];
 const statCard=c=>()=>`<div class="eye">${esc(c.eye)}</div><h1>${esc(c.title)}</h1><div class="stats" style="grid-template-columns:repeat(${c.tiles.length},1fr)">${c.tiles.map(t=>`<div><div class="num">${esc(t[0])}</div><div class="lab">${esc(t[1])}</div></div>`).join("")}</div><div class="src">${esc(SRC)}</div>`;
 const STATCARDS=()=>STATS.filter(c=>c.tiles.every(t=>t[0]!=null)).map(statCard);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pt=()=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return{date:`${g("year")}-${g("month")}-${g("day")}`,min:+g("hour")*60+ +g("minute")}};
 const nowMin=()=>{const n=pt();return n.date===DAY?n.min:(n.date<DAY?-1:9999)};
 
