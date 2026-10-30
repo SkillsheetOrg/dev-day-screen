@@ -48,6 +48,12 @@ h1.big{font-size:104px;line-height:1.2}
 .handles{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px;margin-top:44px}
 .handles>div{background:var(--raised);border-radius:10px;padding:28px}
 .handles .v{font-size:30px;font-weight:600;margin-top:8px;color:var(--ink)}
+.stats{display:grid;gap:28px;margin-top:56px}
+.stats>div{background:var(--raised);border-radius:10px;padding:44px 40px;display:flex;flex-direction:column;gap:16px}
+.stats .num{font-family:"Goldtyne Soft Light",Georgia,serif;font-size:112px;line-height:1.1;color:var(--ink)}
+.stats>div:first-child .num{color:var(--accent)}
+.stats .lab{font-size:30px;line-height:1.35;color:var(--muted)}
+.src{position:absolute;left:0;bottom:0;font-size:20px;color:var(--muted)}
 #bgimg{position:absolute;inset:0;width:1920px;height:1080px;object-fit:cover;opacity:0;transition:opacity .5s}
 #stage.talk #bgimg{opacity:1}
 #stage.talk .bar,#stage.talk #prog{visibility:hidden}
@@ -92,6 +98,18 @@ const STARTUPS=[
  ["Agent Hita","Digital safety tool to spot and prevent online manipulation and scams.","agenthita.org","agent_hita.jpg"],
  ["eosware","An AI teammate for beauty business owners, built by a salon owner.","eosware.ai","eosware.jpg"]
 ];
+// "Who's in the room" cards. Figures from AI Days registration data, Oct 25-30 (live pull 2026-10-30), plus the
+// Claude hackathon count Aniket supplied. Bases: intelligence/measurements.md 2026-10-30. Cards with a null tile are skipped.
+// Enriched shares: audience_20261030/audience_deep.py, base 1,403 Mon-Fri registrants with a public profile (founders: 436 with a current founder title)
+const SRC="Based on AI Days registrations, Oct 25–30, and public LinkedIn profiles";
+const STATS=[
+ {eye:"AI Days by the numbers",title:"One week at Thinkspace",tiles:[["26","sessions over 6 days"],["5,800","registrations"],["1,500+","people across our sessions"]]},
+ {eye:"Who’s in the room this week",title:"Builders first",tiles:[["60%","are founders or about to be"],["42%","have an AI, ML or data background"],["99","PhDs in the room"]]},
+ {eye:"The founders here this week",title:"Small teams, big-tech roots",tiles:[["86%","run teams of 10 or fewer"],["1 in 3","is a repeat founder"],["48%","came out of big tech"]]},
+ {eye:"Who’s in the room this week",title:"Seattle builds here",tiles:[["80%","are based in Greater Seattle"],["46%","have worked at a big tech company"],["200+","managers and execs from companies of 50+"]]}
+];
+const statCard=c=>()=>`<div class="eye">${esc(c.eye)}</div><h1>${esc(c.title)}</h1><div class="stats" style="grid-template-columns:repeat(${c.tiles.length},1fr)">${c.tiles.map(t=>`<div><div class="num">${esc(t[0])}</div><div class="lab">${esc(t[1])}</div></div>`).join("")}</div><div class="src">${esc(SRC)}</div>`;
+const STATCARDS=()=>STATS.filter(c=>c.tiles.every(t=>t[0]!=null)).map(statCard);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pt=()=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return{date:`${g("year")}-${g("month")}-${g("day")}`,min:+g("hour")*60+ +g("minute")}};
 const nowMin=()=>{const n=pt();return n.date===DAY?n.min:(n.date<DAY?-1:9999)};
@@ -108,14 +126,18 @@ function build(){
  const m=nowMin(),deck=[],reel=[];
  deck.push(()=>`<div class="eye">Today at AI Days</div><h1 class="big">Dev Track Workshops</h1><div class="agenda">${SESS.map(s=>`<div class="tm ${m>=s.start&&m<s.end?"now":""}">${esc(s.time)}</div><div>${esc(s.title)}</div>`).join("")}</div>`);
  // Per session: speakers + QR once, then talk background
- SESS.filter(s=>s.people.length).forEach(s=>{const c=()=>sessionCard(s),t=()=>TALK();t.bg=s.bg;t.talk=1;if(s.start===660){const ph=()=>`<div style="position:absolute;top:-170px;left:-128px;width:1920px;box-sizing:border-box;padding:60px 80px 170px;background:linear-gradient(rgba(0,0,0,.92) 0%,rgba(0,0,0,.8) 55%,rgba(0,0,0,0));font:88px/1.3 'Goldtyne Soft Light',serif;text-shadow:0 2px 12px rgba(0,0,0,.6);color:#F8F7F4;text-align:center">This could be your office.<br>Ask Natalia for a tour!</div>`;ph.img="assets/venue_photo.webp";ph.talk=1;deck.push(ph)}deck.push(c,t)});
+ // Stat cards at the start of the first session and of the first after-lunch session
+ SESS.filter(s=>s.people.length).forEach(s=>{if(s.start===600||s.start===780)STATCARDS().forEach(f=>deck.push(f));const c=()=>sessionCard(s),t=()=>TALK();t.bg=s.bg;t.talk=1;if(s.start===660){const ph=()=>`<div style="position:absolute;top:-170px;left:-128px;width:1920px;box-sizing:border-box;padding:60px 80px 170px;background:linear-gradient(rgba(0,0,0,.92) 0%,rgba(0,0,0,.8) 55%,rgba(0,0,0,0));font:88px/1.3 'Goldtyne Soft Light',serif;text-shadow:0 2px 12px rgba(0,0,0,.6);color:#F8F7F4;text-align:center">This could be your office.<br>Ask Natalia for a tour!</div>`;ph.img="assets/venue_photo.webp";ph.talk=1;deck.push(ph)}deck.push(c,t)});
  const hh=()=>`<div class="eye">3:00–5:00 PM · downstairs</div><h1 class="big">Happy Hour &amp; Startup Showcase</h1><p class="lede">Meet today’s ${STARTUPS.length} startups, grab a drink, and find the people you came to meet.</p>`;
  deck.push(hh);
  reel.push(hh);
  const half=Math.ceil(STARTUPS.length/2),st=s=>()=>`<div class="eye">At the Startup Showcase today · 3–5 PM</div><div class="startup"><div class="tile${s[4]?" dark":""}"><img src="assets/${s[3]}" alt="${esc(s[0])} logo"></div><div><h2>${esc(s[0])}</h2><p class="one">${esc(s[1])}</p><p class="site">${esc(s[2])}</p></div></div>`;
- STARTUPS.slice(0,half).forEach(s=>reel.push(st(s)));
+ // One stat card after every two startup cards, rest at the end
+ const sc=STATCARDS();let k=0;
+ STARTUPS.slice(0,half).forEach((s,i)=>{reel.push(st(s));if(i%2===1&&sc[k])reel.push(sc[k++])});
  reel.push(()=>`<div class="eye">Your hosts all week</div><div class="hostgrid"><div><img src="assets/sp_thinkspace.png" alt="Thinkspace"><p class="bg">Thinkspace Seattle</p><p>Home of AI Days, all week. 1700 Westlake Ave N #200, on Lake Union.</p></div><div><img src="assets/sp_trnout.png" alt="trnout."><p class="bg">Turn the events you host into pipeline.</p><p>See who’s coming, find the people you most want to meet, and reach them before, during and after the event.</p><p style="color:var(--ink)">trnout.ai</p></div></div>`);
- STARTUPS.slice(half).forEach(s=>reel.push(st(s)));
+ STARTUPS.slice(half).forEach((s,i)=>{reel.push(st(s));if(i%2===1&&sc[k])reel.push(sc[k++])});
+ sc.slice(k).forEach(f=>reel.push(f));
  return {deck,reel}}
 
 // Deck mode: manual only (arrows / clicker). Reel mode (R): loops the reel cards every 10s until R or Esc.
